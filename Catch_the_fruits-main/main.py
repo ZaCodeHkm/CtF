@@ -24,6 +24,7 @@ class Game():
         self.round_time = 20
         self.round_count = self.round_time
         self.frame_count = 0
+        self.high_score = 0
 
         self.font = pygame.font.Font("Facon.ttf" , 20)
 
@@ -47,7 +48,15 @@ class Game():
         self.powerup_images = [melon]
         self.powerup_type = 0
 
-        
+    "Sounds and Music"
+    pygame.mixer.music.load('ctfbgmusic.wav')
+    pygame.mixer.music.set_volume(0.7)
+    rightfruit_sound = pygame.mixer.Sound('rightfruit.wav')
+    rightfruit_sound.set_volume(0.7)
+    wrongfruit_sound = pygame.mixer.Sound('wrongfruit.wav')
+    wrongfruit_sound.set_volume(0.7)
+    powerup_sound = pygame.mixer.Sound('powerup.wav')
+    powerup_sound.set_volume(0.7)
 
     def update(self):
         self.frame_count += 1
@@ -127,6 +136,7 @@ class Game():
 
                  self.score += 100
                  self.round_catch += 1
+                 self.rightfruit_sound.play()
 
                  collide_fruit.remove(self.fruit_group)
                  self.player.movement = "normal"
@@ -135,6 +145,9 @@ class Game():
              else:
                  self.player.lives -= 1
                  self.player.movement = "normal"
+                 self.wrongfruit_sound.play()
+
+
                  self.player.image = pygame.image.load(self.player.wrong_monkey_image)
                  self.choose_new_target()
 
@@ -144,6 +157,7 @@ class Game():
         #melon = net power
         if collide_powerup:
                 if collide_powerup.powerup_type == 0:
+                            collide_powerup.remove(self.powerup_group)
                             self.player.image = pygame.image.load("monkeybasketbig.png")
                             self.player.rect = self.player.image.get_rect()
                             self.player.rect.centerx = WINDOW_WIDTH//2 + 50
@@ -152,22 +166,28 @@ class Game():
                             self.player.power_status = 1
 
                 if collide_powerup.powerup_type == 1:
+                        collide_powerup.remove(self.powerup_group)
                         self.player.movement = "normal"
                         self.round_time += 10
 
                 if collide_powerup.powerup_type == 2:
+                     collide_powerup.remove(self.powerup_group)
                      self.player.movement = "inverse"
+                self.powerup_sound.play()
+                
             
 
     def start_new_round(self):
-
-        self.paused_game(f"Round level: {self.round_level}" , "Press 'Enter' to start , press 'SPACE_BAR' to catch")
+        
+        pygame.mixer.music.play(-1, 0.0)     
+        self.read_high_score()
+        self.paused_game(f"Round level: {self.round_level}" , "Press 'Enter' to start , press 'SPACE_BAR' to catch" , f"Last score: {self.high_score}")
 
         self.spawn_the_fruits()
         self.spawn_powerup()
 
     
-    def paused_game(self , main_text , sub_text):
+    def paused_game(self , main_text , sub_text ,subs):
         
         WHITE = (255 , 255 , 255)
         BLACK = (0 , 0 , 0)
@@ -180,20 +200,27 @@ class Game():
         sub_text_rect = sub_text.get_rect()
         sub_text_rect.center = (WINDOW_WIDTH // 2 , WINDOW_HEIGHT // 2 + 50)
 
+        subs = self.font.render(subs , True , WHITE)
+        subs_rect = subs.get_rect()
+        subs_rect.center = (WINDOW_WIDTH // 2 , WINDOW_HEIGHT // 2 + 100)
+
         display_surface.fill(BLACK)
         display_surface.blit(main_text , main_text_rect)
         display_surface.blit(sub_text , sub_text_rect)
+        display_surface.blit(subs , subs_rect)
 
         pygame.display.update()
 
         is_paused = True
         while is_paused:
+            pygame.mixer.music.stop()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         is_paused = False
+                        pygame.mixer.music.play()
 
 
     def reset_game(self):
@@ -216,7 +243,8 @@ class Game():
         
         """If player exceeds the amount of time given or lives to 0 , player lost"""
         if self.round_time == 0 or self.player.lives == 0:
-            self.paused_game(f"Final score: {self.score} , run out of time or lives" , "Press 'Enter' to play again")
+            self.paused_game(f"Final score: {self.score} , run out of time or lives" , "Press 'Enter' to play again" , "")
+            self.save_high_score(self.score)
             self.reset_game()
         
         """If all the fruits has done , respawn the fruits"""
@@ -231,7 +259,9 @@ class Game():
 
         """Check the player has done catching all the fruits"""
         if self.round_catch == self.round_target:
-            self.paused_game(f"Score: {self.score} , You clear level {self.round_level}" , "Press 'Enter' to continue~ ")
+            self.read_high_score()
+            self.paused_game(f"Score: {self.score} , You clear level {self.round_level}" , "Press 'Enter' to continue~ " , f"Last score: {self.high_score}")
+            self.save_high_score(self.score)
             self.round_level += 1
             self.score += 100 * self.round_time
             self.round_time = self.round_count * self.round_level
@@ -265,14 +295,27 @@ class Game():
         
         for i in range(1):
             melon = PowerUp(random.randint(301 , WINDOW_WIDTH - 64) , -random.randint(10 , 200) , pygame.image.load("melon.png") , 0)
-            gold = PowerUp(random.randint(301 , WINDOW_WIDTH - 64) , -random.randint(10 , 200) , pygame.image.load("gold.jpeg") , 1)
-            silver_mask = PowerUp(random.randint(301 , WINDOW_WIDTH - 64) , -random.randint(10 , 200) , pygame.image.load("silver_mask.jpeg") , 2)
+            gold = PowerUp(random.randint(301 , WINDOW_WIDTH - 64) , -random.randint(10 , 200) , pygame.image.load("gold.png") , 1)
+            silver_mask = PowerUp(random.randint(301 , WINDOW_WIDTH - 64) , -random.randint(10 , 200) , pygame.image.load("silver_mask.png") , 2)
 
             self.powerup_group.add(melon)
             self.powerup_group.add(gold)
             self.powerup_group.add(silver_mask)
 
+    def read_high_score(self):
+        try:
+            f = open("HighScore" , "r")
+            line = f.readlines()
+            self.high_score = line[0]
+            f.close()
+            
+        except FileNotFoundError or IndexError:
+            pass
 
+    def save_high_score(self , score):
+        f = open("HighScore" , "w")
+        f.write(str(score))
+        f.close()
 
     def choose_new_target(self):
         self.target_fruit_type = random.randint(0 , 3)
@@ -422,6 +465,7 @@ my_game.start_new_round()
 
 
 running = True
+pygame.mixer.music.play(-1, 0.0)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
