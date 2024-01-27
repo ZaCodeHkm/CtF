@@ -48,6 +48,14 @@ class Game():
         self.powerup_images = [melon]
         self.powerup_type = 0
 
+        gold = pygame.image.load('gold.jpeg')
+        self.powerup_images = [gold]
+        self.powerup_type = 1
+
+        silver_mask = pygame.image.load('silver_mask.jpeg')
+        self.powerup_images = [silver_mask]
+        self.powerup_type = 2
+
     "Sounds and Music"
     pygame.mixer.music.load('ctfbgmusic.wav')
     pygame.mixer.music.set_volume(0.7)
@@ -109,6 +117,30 @@ class Game():
         round_time_rect = round_time.get_rect()
         round_time_rect.topleft = (1 , 300)
 
+        powerup_images1 = pygame.image.load('melon.png')
+        powerup_images1_rect = powerup_images1.get_rect()
+        powerup_images1_rect.topleft = (1, 350)
+
+        powerup_text1 = self.font.render(f"Becomes a Gorilla" , True , WHITE)
+        powerup_text1_rect = powerup_text1.get_rect()
+        powerup_text1_rect.topleft = (1, 410)
+
+        powerup_images2 = pygame.image.load('gold.jpeg')
+        powerup_images2_rect = powerup_images2.get_rect()
+        powerup_images2_rect.topleft = (1, 460)
+
+        powerup_text2 = self.font.render(f"Extra Time" , True , WHITE)
+        powerup_text2_rect = powerup_text2.get_rect()
+        powerup_text2_rect.topleft = (1, 530)
+
+        powerup_images3 = pygame.image.load('silver_mask.jpeg')
+        powerup_images3_rect = powerup_images3.get_rect()
+        powerup_images3_rect.topleft = (1, 580)
+
+        powerup_text3 = self.font.render(f"More Fun With Control" , True , WHITE)
+        powerup_text3_rect = powerup_text3.get_rect()
+        powerup_text3_rect.topleft = (1, 650)
+
         display_surface.blit(score_text , score_text_rect)
         display_surface.blit(catch_text , catch_text_rect)
         display_surface.blit(lives_text , lives_text_rect)
@@ -117,12 +149,17 @@ class Game():
         display_surface.blit(round_level_text , round_level_text_rect)
         display_surface.blit(current_catch , current_catch_rect)
         display_surface.blit(fruit_image , fruit_image_rect)
+        display_surface.blit(powerup_images1 , powerup_images1_rect)
+        display_surface.blit(powerup_text1 , powerup_text1_rect)
+        display_surface.blit(powerup_images2 , powerup_images2_rect)
+        display_surface.blit(powerup_text2 , powerup_text2_rect)
+        display_surface.blit(powerup_images3 , powerup_images3_rect)
+        display_surface.blit(powerup_text3 , powerup_text3_rect)
 
         pygame.draw.rect(display_surface , colors[self.target_fruit_type] , (300 , 1 , WINDOW_WIDTH - 300 , WINDOW_HEIGHT) , 2)
         pygame.draw.rect(display_surface , colors[self.target_fruit_type] , (20 , 200 , 66 , 66) , 2)
 
-
-    
+  
     def hit_fruit(self):
          collide_fruit = pygame.sprite.spritecollideany(self.player , self.fruit_group)
 
